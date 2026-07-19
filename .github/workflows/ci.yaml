@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bash syntax check
+        run: |
+          bash -n start-openconnect.sh
+          bash -n scripts/healthcheck.sh
+      - name: Validate Compose example
+        run: |
+          cp .env.example .env
+          docker compose -f compose.example.yaml config
+      - name: Build Docker image
+        run: docker build -t openconnect-vpn:test .
