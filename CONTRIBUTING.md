@@ -9,7 +9,9 @@ Thanks for improving this project. Keep changes small and focused.
 
   ```bash
   bash -n start-openconnect.sh
+  bash -n openconnect-dns-wrapper.sh
   bash -n scripts/healthcheck.sh
+  scripts/test-preserve-docker-dns.sh
   ```
 
 - If you change the Dockerfile or copied runtime files, run:

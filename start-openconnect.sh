@@ -82,6 +82,7 @@ main() {
   fi
 
   local reconnect_timeout="${VPN_RECONNECT_TIMEOUT:-60}"
+
   local extra_args=()
   if [[ -n "${OPENCONNECT_EXTRA_ARGS:-}" ]]; then
     # Intentional word splitting for power users who need extra openconnect flags.
@@ -103,6 +104,7 @@ main() {
     "${servercert_args[@]}" \
     "${authgroup_args[@]}" \
     "${protocol_args[@]}" \
+    --script /usr/local/bin/openconnect-dns-wrapper.sh \
     --reconnect-timeout="$reconnect_timeout" \
     --pid-file=/tmp/openconnect.pid \
     "${extra_args[@]}"

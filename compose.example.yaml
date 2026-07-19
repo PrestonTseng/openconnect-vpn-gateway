@@ -10,6 +10,9 @@ services:
       - /dev/net/tun:/dev/net/tun
     env_file:
       - .env
+    # DNS default: the image preserves Docker embedded DNS (127.0.0.11) after VPN connect,
+    # so attached services can still resolve Compose names on this network. Set
+    # VPN_PRESERVE_DOCKER_DNS=0 only if your VPN site requires stock vpnc-script DNS handling.
     # If any container sharing this network namespace exposes ports, publish them here.
     # Example: application dashboard/API ports. Do not put ports: on services that use network_mode: service:vpn.
     # ports:

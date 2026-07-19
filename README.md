@@ -75,6 +75,7 @@ Environment variables are read directly or through `*_FILE` secret-file variants
 | `VPN_PROTOCOL` | no | OpenConnect protocol, e.g. `anyconnect`, if needed. |
 | `VPN_RECONNECT_TIMEOUT` | no | Reconnect timeout in seconds. Default: `60`. |
 | `OPENCONNECT_EXTRA_ARGS` | no | Additional advanced flags passed to `openconnect`. |
+| `VPN_PRESERVE_DOCKER_DNS` | no | Keep Docker embedded DNS (`127.0.0.11`) after VPN connect so Compose service names keep resolving. Default: `1`. Set `0` for stock vpnc-script DNS behavior. |
 | `VPN_HEALTHCHECK_URL` | no | Internal URL that must respond for the container to be healthy. |
 | `VPN_HEALTHCHECK_TIMEOUT` | no | Curl timeout for `VPN_HEALTHCHECK_URL`. Default: `5`. |
 | `VPN_TUN_IFACE` | no | Tunnel interface checked by healthcheck. Default: `tun0`. |
@@ -141,6 +142,18 @@ services:
 ```
 
 Also make sure services sharing the namespace do not listen on the same port.
+
+### Docker DNS preservation
+
+By default this image preserves Docker embedded DNS (`127.0.0.11`) after OpenConnect connects. This keeps Docker Compose service discovery working for attached containers, so a service behind the VPN gateway can still resolve peers such as `camofox` on the same user-defined Docker network.
+
+The wrapper still lets the stock vpnc script configure tunnel routes, but hides VPN DNS from the child script so it does not replace Docker's resolver. VPN-provided search domains are retained in `/etc/resolv.conf` when available.
+
+If your VPN site requires the stock behavior where VPN DNS replaces container DNS, set:
+
+```env
+VPN_PRESERVE_DOCKER_DNS=0
+```
 
 ## Health checks
 
