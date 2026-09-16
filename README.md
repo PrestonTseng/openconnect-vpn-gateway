@@ -74,8 +74,13 @@ Environment variables are read directly or through `*_FILE` secret-file variants
 | `VPN_AUTHGROUP` | no | OpenConnect auth group. |
 | `VPN_PROTOCOL` | no | OpenConnect protocol, e.g. `anyconnect`, if needed. |
 | `VPN_RECONNECT_TIMEOUT` | no | Reconnect timeout in seconds. Default: `60`. |
+| `VPN_RESTART_DELAY` | no | Delay before restarting OpenConnect inside the same container after it exits. Default: `10`. |
 | `OPENCONNECT_EXTRA_ARGS` | no | Additional advanced flags passed to `openconnect`. |
 | `VPN_PRESERVE_DOCKER_DNS` | no | Keep Docker embedded DNS (`127.0.0.11`) after VPN connect so Compose service names keep resolving. Default: `1`. Set `0` for stock vpnc-script DNS behavior. |
+| `VPN_KEEPALIVE_URL` | no | URL periodically fetched to generate real tunnel traffic and reduce VPN idle timeouts. Use a stable private-network endpoint. |
+| `VPN_KEEPALIVE_INTERVAL` | no | Seconds between keepalive fetches. Default: `300`. |
+| `VPN_KEEPALIVE_TIMEOUT` | no | Curl timeout for keepalive fetches. Default: `5`. |
+| `VPN_KEEPALIVE_LOG_SUCCESS` | no | Set `1` to log successful keepalives. Failures are always logged. |
 | `VPN_HEALTHCHECK_URL` | no | Internal URL that must respond for the container to be healthy. |
 | `VPN_HEALTHCHECK_TIMEOUT` | no | Curl timeout for `VPN_HEALTHCHECK_URL`. Default: `5`. |
 | `VPN_TUN_IFACE` | no | Tunnel interface checked by healthcheck. Default: `tun0`. |
@@ -163,6 +168,19 @@ The built-in healthcheck passes when:
 2. if `VPN_HEALTHCHECK_URL` is set, that URL returns successfully.
 
 For production use, set `VPN_HEALTHCHECK_URL` to a stable private-network endpoint. Checking only `tun0` proves the tunnel device exists, but not that private network resources are reachable.
+
+## Reconnect and idle-timeout behavior
+
+The container keeps PID 1 alive and restarts `openconnect` inside the same container if OpenConnect exits. This matters for Compose gateway users: services attached with `network_mode: "service:vpn"` keep sharing the same network namespace instead of being stranded in a stale namespace after the VPN service container restarts.
+
+Some AnyConnect servers also enforce idle timeouts based on real tunnel traffic. OpenConnect's protocol-level DPD/keepalive traffic is not always counted as activity by the server. To reduce idle disconnects, set `VPN_KEEPALIVE_URL` to a low-cost private-network endpoint that is reachable only through the VPN:
+
+```env
+VPN_KEEPALIVE_URL=https://intranet.example.com/health
+VPN_KEEPALIVE_INTERVAL=300
+```
+
+Do not use a public URL for idle prevention unless your VPN routes that public traffic through the tunnel; otherwise it will not prove or preserve VPN activity.
 
 ## MFA / SSO notes
 
